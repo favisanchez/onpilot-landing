@@ -57,8 +57,8 @@ nav{position:sticky;top:0;z-index:60;background:rgba(246,248,245,.82);backdrop-f
 /* HERO */
 .hero{padding:100px 0 0;text-align:center;position:relative;}
 .hero-bg{position:absolute;inset:0;z-index:-1;overflow:hidden;}
-.hero-bg video, .hero-bg img{width:100%;height:100%;object-fit:cover;filter:blur(1.5px) saturate(.9);opacity:.5;}
-.hero-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg, rgba(246,248,245,.94) 0%, rgba(246,248,245,.72) 38%, rgba(246,248,245,.80) 70%, rgba(246,248,245,1) 100%);}
+.hero-bg video, .hero-bg img{width:100%;height:100%;object-fit:cover;filter:blur(7px) saturate(.95);opacity:.85;transform:scale(1.06);}
+.hero-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg, rgba(246,248,245,.78) 0%, rgba(246,248,245,.34) 38%, rgba(246,248,245,.48) 70%, rgba(246,248,245,1) 100%);}
 @media (prefers-reduced-motion: reduce){ .hero-bg video{display:none;} }
 .live-badge{display:inline-flex;align-items:center;gap:9px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.1em;color:var(--green);background:var(--surface);border:1px solid var(--border);padding:8px 18px;border-radius:100px;margin-bottom:30px;}
 .pulse{width:8px;height:8px;border-radius:50%;background:var(--neon);animation:pulse 1.8s infinite;}
@@ -114,7 +114,15 @@ nav{position:sticky;top:0;z-index:60;background:rgba(246,248,245,.82);backdrop-f
 .fc-post .bar{height:6px;border-radius:100px;background:var(--neon-soft);margin-top:10px;overflow:hidden;}
 .fc-post .bar i{display:block;height:100%;width:78%;background:var(--neon);border-radius:100px;}
 @media(max-width:1060px){.fc-money{left:12px;} .fc-notif{right:12px;} .fc-post{right:24px;bottom:20px;}}
-@media(max-width:720px){.fc-post{display:none;} .fc-money{top:auto;bottom:-20px;left:8px;width:190px;padding:14px;} .fc-money .n{font-size:26px;} .fc-notif{top:-20px;right:8px;width:220px;padding:14px;}}
+@media(max-width:720px){
+  .scene{padding:50px 0 70px;}
+  .scene-inner{flex-direction:column;align-items:center;gap:18px;}
+  .fcard{position:static;}
+  .fc-post{display:none;}
+  .fc-notif{order:-1;width:min(320px,88vw);}
+  .fc-money{width:min(320px,88vw);text-align:center;}
+  .fc-money .n{font-size:30px;}
+}
 
 /* CONTADORES */
 .counters{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:60px 0;}
@@ -241,7 +249,7 @@ footer{padding:60px 0 70px;color:var(--grey);font-size:14px;}
 
 <header class="hero">
   <div class="hero-bg">
-    <video autoplay muted loop playsinline poster="assets/video-fondo-poster.jpg"><source src="assets/video-fondo.mp4" type="video/mp4"></video>
+    <video id="heroVideo" autoplay muted loop playsinline poster="assets/video-fondo-poster.jpg"><source src="assets/video-fondo-a.mp4" type="video/mp4"></video>
   </div>
   <div class="container">
     <div class="live-badge reveal"><span class="pulse"></span> EL BOT ESTÁ ATENDIENDO AHORA MISMO</div>
@@ -462,6 +470,16 @@ footer{padding:60px 0 70px;color:var(--grey);font-size:14px;}
 </footer>
 
 <script>
+// Comparador de fondos del hero: web2.html?fondo=a | b | c
+(function(){
+  var opts = {a:'assets/video-fondo-a.mp4', b:'assets/video-fondo-b.mp4', c:'assets/video-fondo-c.mp4'};
+  var pick = new URLSearchParams(location.search).get('fondo');
+  if(pick && opts[pick]){
+    var v = document.getElementById('heroVideo');
+    v.querySelector('source').src = opts[pick];
+    v.load(); v.play().catch(function(){});
+  }
+})();
 var io = new IntersectionObserver(function(es){
   es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
 },{threshold:.14});
