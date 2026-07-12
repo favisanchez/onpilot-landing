@@ -653,10 +653,12 @@ svg.h5-svg{width:100%;height:100%;overflow:visible;}
 .red-btn.sel-ig{border-color:var(--ig);background:var(--ig-lt);color:var(--ig);}
 .red-btn.sel-fb{border-color:var(--fb);background:var(--fb-lt);color:var(--fb);}
 .red-btn.sel-tk{border-color:var(--tk);background:var(--tk-lt);color:var(--tk);}
+.red-btn.sel-wa{border-color:#25D366;background:#e9fbf0;color:#128C7E;}
 .red-icon{width:20px;height:20px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;}
 .red-icon.ig{background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff;}
 .red-icon.fb{background:#1877F2;color:#fff;}
 .red-icon.tk{background:#010101;color:#fff;}
+.red-icon.wa{background:#25D366;color:#fff;}
 
 /* Ubicación */
 .ubicacion-row{display:flex;gap:8px;flex-wrap:wrap;}
@@ -1090,9 +1092,11 @@ svg.h5-svg{width:100%;height:100%;overflow:visible;}
           Dashboard
         </button>
         <div style="flex:1;font-size:14px;font-weight:700;color:var(--g800);">Contenido para redes</div>
-        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--green);font-weight:600;flex-shrink:0;">
-          <div style="width:7px;height:7px;border-radius:50%;background:var(--green);"></div>
-          Buffer conectado
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;" title="Estado de conexi\u00f3n por red">
+          <span style="display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--g500);"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);"></span>IG</span>
+          <span style="display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--g500);"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);"></span>FB</span>
+          <span style="display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--g500);"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);"></span>WA</span>
+          <span style="display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--g400);" title="TikTok no conectado"><span style="width:6px;height:6px;border-radius:50%;background:var(--g300);"></span>TK</span>
         </div>
       </div>
       <!-- Desktop tabs -->
@@ -1512,6 +1516,77 @@ function navigate(v){
 }
 
 // DASHBOARD
+// ============ PILOTO DE CONTENIDO (H4 - plan semanal automatico) ============
+var pilotoPlan = [
+  {id:0, tipo:'PROMOCI\u00d3N', emoji:'\ud83c\udff7', titulo:'Oferta de la semana: Radiofrecuencia Facial \u221220%', fecha:'Mar 19 \u00b7 18:00', redes:'IG \u00b7 FB \u00b7 Estado WA', imgIdx:0, estado:'pendiente', origen:'', prompt:'Quiero anunciar un 20% de descuento en Radiofrecuencia Facial esta semana'},
+  {id:1, tipo:'CONSEJO', emoji:'\ud83d\udca1', titulo:'3 errores al hidratar tu piel en verano', fecha:'Jue 21 \u00b7 12:30', redes:'IG \u00b7 FB', imgIdx:4, estado:'pendiente', origen:'', prompt:'Quiero un post de consejo sobre errores comunes al hidratar la piel en verano'},
+  {id:2, tipo:'TESTIMONIO', emoji:'\u2b50', titulo:'\u201cSal\u00ed flotando de mi primera sesi\u00f3n\u201d \u2014 Mar\u00eda G.', fecha:'S\u00e1b 23 \u00b7 11:00', redes:'IG \u00b7 Estado WA', imgIdx:2, estado:'pendiente', origen:'Rese\u00f1a recibida por WhatsApp tras su cita \u00b7 Permiso concedido \u2713 \u00b7 Invitada a rese\u00f1ar en Google Maps', prompt:'Quiero un post de testimonio con la rese\u00f1a de Mar\u00eda G.: Sal\u00ed flotando de mi primera sesi\u00f3n'}
+];
+function pilotoHTML(){
+  var pend = pilotoPlan.filter(function(p){return p.estado==='pendiente';});
+  var apr = pilotoPlan.filter(function(p){return p.estado==='aprobado';});
+  var html='<div class="sec-title" id="piloto-sec" style="display:flex;align-items:center;gap:8px;">PILOTO DE CONTENIDO <span style="background:var(--green-lt);color:var(--green-dk);font-size:10px;padding:2px 9px;border-radius:100px;font-weight:700;text-transform:none;letter-spacing:0;">Autom\u00e1tico</span></div>';
+  html+='<div style="background:var(--white);border-radius:var(--rxl);box-shadow:var(--shsm);overflow:hidden;">';
+  html+='<div style="padding:14px 18px;border-bottom:1px solid var(--g200);"><div style="font-size:14px;font-weight:700;color:var(--g800);">Tu semana, lista para aprobar \u2708\ufe0f</div><div style="font-size:12px;color:var(--g500);margin-top:2px;">Onpilot ha preparado '+pilotoPlan.length+' publicaciones seg\u00fan tu sector y tus servicios. T\u00fa decides.</div></div>';
+  pilotoPlan.forEach(function(p){
+    if(p.estado==='descartado') return;
+    if(p.estado==='aprobado'){
+      html+='<div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--g200);background:var(--green-lt);">'
+        +'<div style="font-size:18px;">\u2705</div>'
+        +'<div style="flex:1;"><div style="font-size:13px;font-weight:600;color:var(--green-dk);">'+p.titulo+'</div><div style="font-size:11px;color:var(--g500);">Programado \u00b7 '+p.fecha+' \u00b7 '+p.redes+'</div></div>'
+        +'<button onclick="pilotoVerCal()" style="padding:6px 12px;border-radius:var(--rpill);border:1px solid var(--g200);background:var(--white);cursor:pointer;font-size:11px;font-weight:600;color:var(--g500);font-family:DM Sans,sans-serif;">Ver en calendario \u2192</button>'
+        +'</div>';
+      return;
+    }
+    html+='<div style="display:flex;gap:12px;padding:14px 18px;border-bottom:1px solid var(--g200);align-items:flex-start;">'
+      +'<img src="'+stockImages[p.imgIdx].url+'" style="width:52px;height:52px;border-radius:12px;object-fit:cover;flex-shrink:0;" alt=""/>'
+      +'<div style="flex:1;min-width:0;">'
+      +'<div style="font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--g400);">'+p.emoji+' '+p.tipo+' \u00b7 '+p.fecha+' \u00b7 '+p.redes+'</div>'
+      +'<div style="font-size:13px;font-weight:600;color:var(--g800);margin-top:3px;line-height:1.35;">'+p.titulo+'</div>'
+      +(p.origen?'<div style="font-size:11px;color:var(--green-dk);margin-top:3px;background:var(--green-lt);display:inline-block;padding:2px 8px;border-radius:6px;">'+p.origen+'</div>':'')
+      +'<div style="display:flex;gap:8px;margin-top:9px;flex-wrap:wrap;">'
+      +'<button onclick="aprobarPiloto('+p.id+')" style="padding:7px 16px;border-radius:var(--rpill);background:var(--g800);color:#fff;border:none;cursor:pointer;font-size:12px;font-weight:700;font-family:DM Sans,sans-serif;">\u2713 Aprobar</button>'
+      +'<button onclick="editarPiloto('+p.id+')" style="padding:7px 14px;border-radius:var(--rpill);border:1px solid var(--g200);background:none;cursor:pointer;font-size:12px;font-weight:500;color:var(--g500);font-family:DM Sans,sans-serif;">Editar</button>'
+      +'<button onclick="descartarPiloto('+p.id+')" style="padding:7px 14px;border-radius:var(--rpill);border:1px solid var(--g200);background:none;cursor:pointer;font-size:12px;font-weight:500;color:var(--g400);font-family:DM Sans,sans-serif;">Descartar</button>'
+      +'</div></div></div>';
+  });
+  if(pend.length===0){
+    html+='<div style="padding:14px 18px;font-size:12px;color:var(--g500);">Nada pendiente. La pr\u00f3xima propuesta llegar\u00e1 el lunes \u2014 o crea un post t\u00fa mismo en <strong>Redes</strong>.</div>';
+  }
+  html+='</div>';
+  return html;
+}
+function aprobarPiloto(id){
+  var p=pilotoPlan.find(function(x){return x.id===id;});
+  if(!p) return;
+  p.estado='aprobado';
+  posts.push({id:posts.length,fecha:p.fecha,titulo:p.titulo,redes:['ig'],ubic:'feed',status:'programado',likes:0,comentarios:0,alcance:0});
+  renderDash();
+}
+function descartarPiloto(id){
+  var p=pilotoPlan.find(function(x){return x.id===id;});
+  if(!p) return;
+  p.estado='descartado';
+  renderDash();
+}
+function editarPiloto(id){
+  var p=pilotoPlan.find(function(x){return x.id===id;});
+  if(!p) return;
+  navigate('h4');
+  setTimeout(function(){
+    var d=document.getElementById('prompt-area'); if(d){d.value=p.prompt; d.scrollIntoView({behavior:'smooth'});}
+    var m=document.getElementById('h4-prompt-m'); if(m){m.value=p.prompt;}
+  },150);
+}
+function pilotoScroll(){
+  var el=document.getElementById('piloto-sec');
+  if(el) el.scrollIntoView({behavior:'smooth'});
+}
+function pilotoVerCal(){
+  navigate('h4');
+  setTimeout(function(){ if(typeof h4SwTab==='function' && document.getElementById('h4-tab-calendario')) h4SwTab('calendario'); },150);
+}
+
 function renderDash(){
   var dow=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
   var ds=dow[today.getDay()]+', '+today.getDate()+' de '+MN[today.getMonth()]+' '+today.getFullYear();
@@ -1583,7 +1658,7 @@ function renderDash(){
   var toolDefs=[
     {id:'h1',name:'Agenda y clientes',desc:'Citas, fichas de pacientes, historial y cierre de caja.',icon:'ti-agenda',badge:'new',stats:'<span class="tool-stat"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;stroke-width:2;fill:none;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg> '+cHoy+' citas hoy</span><span class="tool-stat"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;stroke-width:2;fill:none;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> '+clients.length+' clientes</span>'},
     {id:'h2',name:'WhatsApp automático',desc:'Bot que atiende, agenda citas y reactiva pacientes.',icon:'ti-wa',badge:(pendMsgs>0?'<span style="background:#EF4444;color:#fff;font-size:10px;padding:2px 9px;border-radius:100px;font-weight:700;">'+pendMsgs+' nuevos</span>':'new'),stats:'<span class="tool-stat alert"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;stroke-width:2;fill:none;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> '+pendMsgs+' pendientes</span><span class="tool-stat warn"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;stroke-width:2;fill:none;"><path d="M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0z"/><line x1="17" y1="17" x2="22" y2="22"/><line x1="22" y1="17" x2="17" y2="22"/></svg> '+inactCnt+' a reactivar</span>'},
-    {id:'h4',name:'Contenido para redes',desc:'Genera y programa posts para IG, FB y TikTok.',icon:'ti-cont',badge:'new',stats:''},
+    {id:'h4',name:'Contenido para redes',desc:'Genera y programa posts para IG, FB, TikTok y Estados de WhatsApp.',icon:'ti-cont',badge:'new',stats:''},
     {id:'h5',name:'Panel de control',desc:'Métricas, KPIs y alertas del negocio en tiempo real.',icon:'ti-panel',badge:'new',stats:''}
   ];
   var icSVGs={
@@ -1607,12 +1682,16 @@ function renderDash(){
   });
   html+='</div>';
 
+  // Piloto de contenido (plan semanal H4)
+  html+=pilotoHTML();
+
   // Notifs
   html+='<div class="sec-title">NOTIFICACIONES</div>'
-    +'<div class="notifs-wrap"><div class="notifs-hd"><div class="notifs-title"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:#EF4444;stroke-width:2;fill:none;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> Requieren tu atención <span class="nbadge">3</span></div></div>'
+    +'<div class="notifs-wrap"><div class="notifs-hd"><div class="notifs-title"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:#EF4444;stroke-width:2;fill:none;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> Requieren tu atención <span class="nbadge">4</span></div></div>'
     +'<div class="notif-item" data-nav="h2"><div class="ndot-l" style="background:var(--amber);"></div><div><div class="notif-text"><strong>Pedro López</strong> ha repetido la misma pregunta. El bot necesita ayuda.</div><div class="notif-time">hace 15 minutos</div><div class="notif-action">Ver conversación →</div></div></div>'
     +'<div class="notif-item" onclick="h2GoReact()"><div class="ndot-l" style="background:var(--red);"></div><div><div class="notif-text"><strong>Sonia Blanco</strong> lleva 98 días sin visitar el centro. Propuesta lista.</div><div class="notif-time">Detectado hoy</div><div class="notif-action">Ver propuesta →</div></div></div>'
     +'<div class="notif-item" data-nav="h1"><div class="ndot-l" style="background:var(--green);"></div><div><div class="notif-text"><strong>Laura Martínez</strong> tiene cita hoy a las 09:30h — Facial hidratante.</div><div class="notif-time">Hoy</div><div class="notif-action">Ver agenda →</div></div></div>'
+    +'<div class="notif-item" onclick="pilotoScroll()"><div class="ndot-l" style="background:#8B5CF6;"></div><div><div class="notif-text">Tu <strong>plan de contenido</strong> de la semana está listo — posts esperando aprobación.</div><div class="notif-time">Generado hoy</div><div class="notif-action">Revisar plan →</div></div></div>'
     +'</div>';
 
   document.getElementById('dash-content').innerHTML=html;
@@ -2025,7 +2104,7 @@ window.addEventListener('DOMContentLoaded', function() {
   document.getElementById('mob-nav').classList.add('vis');
 });
 var today = new Date();
-var selRedes = {ig: true, fb: true, tk: false};
+var selRedes = {ig: true, fb: true, tk: false, wa: true};
 var selUbic = ['feed'];
 var selPers = null;
 var selPlantilla = null;
@@ -2068,17 +2147,18 @@ var plantillas = [
 ];
 
 var sugerencias = [
-  'Oferta de la semana',
-  'Consejo de cuidado de piel',
-  'Presentar un tratamiento',
-  'Resultado de cliente',
-  'Recordatorio de reserva',
-  'Curiosidad o dato interesante',
+  'Oferta en Radiofrecuencia Facial',
+  'Presenta tu Mesoterapia',
+  'Consejo post-Facial hidratante',
+  'Resultado real de un cliente',
+  'Recuerda reservar por WhatsApp',
+  'Depilaci\u00f3n l\u00e1ser: mitos y verdades',
 ];
 
 var captions = {
   ig: '✨ Esta semana tenemos algo especial para ti.\n\nNuestra Radiofrecuencia Facial al 20% de descuento — el tratamiento que reafirma, ilumina y rejuvenece tu piel sin necesidad de agujas ni tiempo de recuperación.\n\n¿El resultado? Una piel que se ve y se siente renovada desde la primera sesión. 💆‍♀️\n\n👉 Reserva esta semana y aprovecha la oferta. Plazas limitadas.\n\n#estetica #radiofrecuencia #cuidadodepiel #belleza #tratamientofacial #benidorm #skincare #bienestar #mibella',
   fb: '✨ ¡Oferta especial esta semana en Centro Estética MiBella!\n\nTenemos nuestra Radiofrecuencia Facial con un 20% de descuento. Un tratamiento que reafirma y rejuvenece la piel, sin agujas y sin tiempo de recuperación.\n\nResultados visibles desde la primera sesión. 💆‍♀️\n\nLlámanos o escríbenos por WhatsApp para reservar tu cita. Las plazas son limitadas.\n\n#estetica #oferta #radiofrecuencia #belleza #benidorm',
+  wa: '\u2728 Esta semana: Radiofrecuencia Facial al 20% de descuento.\\n\\nReafirma e ilumina tu piel sin agujas. Resultados desde la primera sesi\u00f3n \ud83d\udc86\u200d\u2640\ufe0f\\n\\nResponde a este estado y te reservamos tu plaza \ud83d\udcc5',
   tk: '20% OFF en Radiofrecuencia Facial esta semana 💥✨\n\nEl tratamiento que reafirma tu piel en 45 minutos, sin agujas, sin dolor. Resultados reales desde la primera sesión 💆‍♀️\n\nReserva ya 👇\n\n#estetica #skincare #radiofrecuencia #belleza #fyp #parati #oferta',
 };
 
@@ -2119,7 +2199,7 @@ function h4SwTab(tab) {
 // ---- REDES ----
 function toggleRed(red) {
   selRedes[red] = !selRedes[red];
-  if (!selRedes.ig && !selRedes.fb && !selRedes.tk) {
+  if (!selRedes.ig && !selRedes.fb && !selRedes.tk && !selRedes.wa) {
     selRedes[red] = true;
   }
   // Update desktop button if it exists
@@ -2141,6 +2221,7 @@ function renderUbicacion() {
   opts.push({id:'stories',label:'Stories'});
   if (selRedes.ig || selRedes.tk) opts.push({id:'reels',label:'Reels'});
   if (selRedes.tk) opts.push({id:'tiktok',label:'TikTok video'});
+  if (selRedes.wa) opts.push({id:'estados',label:'Estado WA'});
   selUbic = selUbic.filter(function(u){ return opts.find(function(o){return o.id===u;}); });
   if (selUbic.length === 0) selUbic = ['feed'];
   var el = document.getElementById('ubicacion-btns');
@@ -2378,13 +2459,13 @@ function adaptarRed() {
 function updatePreviewTabs() {
   var el = document.getElementById('preview-tabs');
   var reds = Object.keys(selRedes).filter(function(r){return selRedes[r];});
-  var labels = {ig:'IG Feed',fb:'FB',tk:'TikTok'};
+  var labels = {ig:'IG Feed',fb:'FB',tk:'TikTok',wa:'WA Estado'};
   var activeRed = reds[0];
   el.innerHTML = reds.map(function(r) {
     return '<button class="prev-tab'+(r===activeRed?' active':'')+'" data-set"previewred="'+r+'">'+labels[r]+'</button>';
   }).join('');
   // Also add ubicacion
-  var ubicLabels = {feed:'Feed',stories:'Stories',reels:'Reels',tiktok:'TikTok video'};
+  var ubicLabels = {feed:'Feed',stories:'Stories',reels:'Reels',tiktok:'TikTok video',estados:'Estado WA'};
   el.innerHTML += '<button class="prev-tab" onclick="setPreviewUbic()" style="border-left:1px solid var(--g200);margin-left:4px;">'+ubicLabels[selUbic]+'</button>';
   renderPreview(activeRed, selUbic);
 }
@@ -2413,7 +2494,9 @@ function renderPreview(red, ubic) {
   var imgUrl = mediaData || '';
   var el = document.getElementById('phone-screen');
 
-  if (ubic === 'stories') {
+  if (red === 'wa' || ubic === 'estados') {
+    el.innerHTML = renderWaEstadoPreview(imgUrl, caption);
+  } else if (ubic === 'stories') {
     el.innerHTML = renderStoriesPreview(imgUrl, caption);
   } else if (ubic === 'reels' || ubic === 'tiktok' || red === 'tk') {
     el.innerHTML = renderReelPreview(imgUrl, caption, red);
@@ -2444,6 +2527,20 @@ function renderIgPreview(imgUrl, caption) {
     +'<div class="ig-likes">243 Me gusta</div>'
     +'<div class="ig-caption"><strong>mibella.estetica</strong> '+mainText+(hashtags?'<span class="hashtags">'+hashtags+'</span>':'')+'</div>'
     +'<div class="ig-time">HACE 2 MINUTOS</div>';
+}
+function renderWaEstadoPreview(imgUrl, caption) {
+  var firstLine = caption.split('\n').filter(function(l){return l && !l.startsWith('#');})[0] || '';
+  var mediaEl = imgUrl
+    ? '<img src="'+imgUrl+'" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;" />'
+    : '';
+  return '<div class="stories-screen" style="background:#0b141a;">'
+    +'<div class="stories-progress"><div class="stories-bar done" style="background:#25D366;"></div></div>'
+    +'<div class="stories-hd"><div class="stories-av" style="background:#25D366;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;">MB</div><div><div class="stories-name">MiBella Est\u00e9tica</div><div class="stories-time">Mi estado \u00b7 Ahora</div></div></div>'
+    +'<div style="flex:1;position:relative;">'+mediaEl
+    +'<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,'+(imgUrl?'0':'0.2')+');font-size:48px;">\ud83d\uddbc</div>'
+    +'<div class="stories-text-ov" style="background:rgba(0,0,0,.45);border-radius:10px;padding:8px 12px;margin:0 16px;">'+firstLine+'</div></div>'
+    +'<div class="stories-reply" style="border-color:rgba(255,255,255,.35);"><span class="stories-reply-t">Responder al estado\u2026</span><span style="color:#25D366;font-size:16px;">\u27a4</span></div>'
+    +'</div>';
 }
 function renderStoriesPreview(imgUrl, caption) {
   var firstLine = caption.split('\n')[0];
@@ -2656,10 +2753,23 @@ function usarIdea(titulo, tipo) {
   document.getElementById('prompt-area').value = 'Quiero crear un post de tipo ' + tipo + ' sobre: ' + titulo;
   document.getElementById('prompt-area').scrollIntoView({behavior:'smooth'});
 }
+var ideasData2 = [
+  {tipo:'PROMOCI\u00d3N',titulo:'Pack verano: facial + hidrataci\u00f3n profunda',desc:'Combina dos servicios en un pack de temporada con precio cerrado. Ideal para subir el ticket medio.',redes:['ig','fb'],bg:'#FEF3C7',emoji:'\ud83c\udff7'},
+  {tipo:'CONSEJO',titulo:'Qu\u00e9 hacer (y qu\u00e9 no) despu\u00e9s de una depilaci\u00f3n l\u00e1ser',desc:'Contenido pr\u00e1ctico que reduce dudas por WhatsApp y posiciona tu experiencia.',redes:['ig','fb','tk'],bg:'#E0F5ED',emoji:'\ud83d\udca1'},
+  {tipo:'DETR\u00c1S DE C\u00c1MARAS',titulo:'As\u00ed esterilizamos y preparamos cada cabina',desc:'La higiene vende confianza. Formato v\u00eddeo corto perfecto para Reels y TikTok.',redes:['ig','tk'],bg:'#EEF4FF',emoji:'\ud83c\udfac'},
+  {tipo:'TESTIMONIO',titulo:'De esc\u00e9ptica a fan: la historia de Ana con la mesoterapia',desc:'Los testimonios con arco narrativo generan m\u00e1s guardados y comparticiones.',redes:['ig','fb'],bg:'#f3e8ff',emoji:'\u2b50'},
+  {tipo:'ESTADO WA',titulo:'Recordatorio: quedan 2 huecos esta semana',desc:'Urgencia real directa a tus contactos de WhatsApp. Solo Onpilot publica Estados desde la misma herramienta.',redes:['ig'],bg:'#e9fbf0',emoji:'\ud83d\udcf2'},
+  {tipo:'SERVICIO',titulo:'Presoterapia: qu\u00e9 es y c\u00f3mo funciona una sesi\u00f3n',desc:'Explica el servicio menos conocido de tu tarifario para generar demanda nueva.',redes:['ig','fb','tk'],bg:'#FEF3C7',emoji:'\u2728'},
+];
+var ideasAlt = false;
 function h4RefreshIdeas() {
   var el = document.getElementById('h4-ideas-grid');
   el.style.opacity = '0.4';
-  setTimeout(function(){el.style.opacity='1';}, 600);
+  setTimeout(function(){
+    var tmp = ideasData; ideasData = ideasData2; ideasData2 = tmp;
+    renderIdeas();
+    el.style.opacity='1';
+  }, 600);
 }
 
 // ---- EVENT DELEGATION ----
@@ -2779,6 +2889,7 @@ function h4RenderRedesM() {
   html+='<button class="red-btn'+(selRedes.ig?' sel-ig':'')+'" data-togglered="ig"><span class="red-icon ig">IG</span> Instagram</button>';
   html+='<button class="red-btn'+(selRedes.fb?' sel-fb':'')+'" data-togglered="fb"><span class="red-icon fb">f</span> Facebook</button>';
   html+='<button class="red-btn'+(selRedes.tk?' sel-tk':'')+'" data-togglered="tk"><span class="red-icon tk">TK</span> TikTok</button>';
+  html+='<button class="red-btn'+(selRedes.wa?' sel-wa':'')+'" data-togglered="wa"><span class="red-icon wa">W</span> Estados WA</button>';
   el.innerHTML=html;
 }
 
@@ -2787,6 +2898,7 @@ function h4RenderUbicM() {
   if(!el) return;
   var opts=[{id:'feed',label:'Feed'},{id:'stories',label:'Stories'}];
   if(selRedes.ig||selRedes.tk) opts.push({id:'reels',label:'Reels'});
+  if(selRedes.wa) opts.push({id:'estados',label:'Estado WA'});
   var html='';
   opts.forEach(function(o){
     var active=selUbic.indexOf(o.id)>-1;
@@ -2888,7 +3000,7 @@ function h4RegenM(){
 function h4RenderPrevTabsM(){
   var el=document.getElementById('h4-prev-tabs-m');if(!el)return;
   var reds=Object.keys(selRedes).filter(function(r){return selRedes[r];});
-  var labels={ig:'Instagram',fb:'Facebook',tk:'TikTok'};
+  var labels={ig:'Instagram',fb:'Facebook',tk:'TikTok',wa:'WhatsApp'};
   el.innerHTML=reds.map(function(r,i){
     return '<button class="prev-tab'+(i===0?' active':'')+'" data-setprevred="'+r+'">'+labels[r]+'</button>';
   }).join('');
@@ -2900,7 +3012,8 @@ function h4RenderPrevM(){
   var ubic=Array.isArray(selUbic)?selUbic[0]:selUbic;
   var caption=document.getElementById('h4-caption-m');
   var captionTxt=caption?caption.value:'';
-  if(ubic==='stories'){el.innerHTML=renderStoriesPreview(mediaData||'',captionTxt);}
+  if(red==='wa'||ubic==='estados'){el.innerHTML=renderWaEstadoPreview(mediaData||'',captionTxt);}
+  else if(ubic==='stories'){el.innerHTML=renderStoriesPreview(mediaData||'',captionTxt);}
   else if(ubic==='reels'||red==='tk'){el.innerHTML=renderReelPreview(mediaData||'',captionTxt,red);}
   else if(red==='fb'){el.innerHTML=renderFbPreview(mediaData||'',captionTxt);}
   else{el.innerHTML=renderIgPreview(mediaData||'',captionTxt);}
@@ -3005,6 +3118,7 @@ function h4RenderCrearLayout(){
         '<button class="red-btn sel-ig" id="red-ig" data-togglered="ig"><div class="red-icon ig">IG</div> Instagram</button>'+
         '<button class="red-btn sel-fb" id="red-fb" data-togglered="fb"><div class="red-icon fb">f</div> Facebook</button>'+
         '<button class="red-btn" id="red-tk" data-togglered="tk"><div class="red-icon tk">TK</div> TikTok</button>'+
+        '<button class="red-btn sel-wa" id="red-wa" data-togglered="wa"><div class="red-icon wa">W</div> Estados WA</button>'+
       '</div></div>'+
       '<div class="card" id="ubicacion-card"><div class="card-title">¿DÓNDE PUBLICAR? <span style="font-size:10px;color:var(--g400);font-weight:400;">— multiselección</span></div><div class="ubicacion-row" id="ubicacion-btns"></div></div>'+
       '<div class="card"><div class="card-title">IMAGEN O VÍDEO</div>'+
