@@ -61,6 +61,17 @@ API key. `ADMIN_EMAIL` está fijado a `favi.sanchez@hotmail.com` por eso
 mismo (confirmado con un envío real que llegó correctamente); usar cualquier
 otra dirección ahí falla con 403 hasta verificar un dominio.
 
+### Checklist de H2 contra el orden de construcción del plan
+1. Migración `004_h2_whatsapp.sql` — ✅ hecho.
+2. `configBot.service.js` + extracción de lógica reutilizable de `citas.controller.js` — ✅ hecho.
+3. Endpoints de conversaciones + reactivación (CRUD) — ✅ hecho y probado.
+4. `whatsapp.service.js` + webhook (verificación + recepción) + envío — ✅ código hecho; el envío/recepción real por WhatsApp no se ha podido probar todavía (falta credenciales de Meta, ver más abajo).
+5. `bot.service.js` (prompt, tool use, escalado) — ✅ hecho y probado con Claude real.
+6. `recordatorios.job.js` + `reactivacion.job.js` (node-cron) — ✅ hecho; el job de reactivación se ejecutó manualmente y generó propuestas reales, el de recordatorios no se ha visto disparar todavía en una ejecución programada real (necesita una cita dentro de la ventana de 24/12/2h para activarse).
+7. Rewiring de `public/onpilot_system.html` (H2) + rediseño oscuro scoped — ✅ hecho y probado en desktop y móvil.
+8. Datos de prueba — ✅ hecho (`npm run seed:h2`, más las 24 propuestas de reactivación generadas por el job).
+9. Checkpoint contigo para las credenciales de Meta → probar el ciclo real completo por WhatsApp — ⏳ **pendiente**, es lo único que falta para cerrar el encargo del todo.
+
 H2 (WhatsApp automático) completado: backend real en `conversaciones`/
 `mensajes`/`propuestas_reactivacion` (migración `004_h2_whatsapp.sql`),
 endpoints de conversaciones/reactivación/webhook/métricas, bot sobre Claude
