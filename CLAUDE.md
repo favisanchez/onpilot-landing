@@ -57,11 +57,16 @@ UPDATE negocios SET estado = 'activo' WHERE email = '<email-del-negocio>';
 
 **Aviso sobre Resend**: la cuenta usada es de prueba (sin dominio verificado
 en resend.com/domains), así que solo puede enviar a la dirección dueña de la
-API key (`favi.sanchez@hotmail.com`, confirmado enviando un email real que
-llegó correctamente) — enviar a `ADMIN_EMAIL` actual
-(`favi.sanchez.cano@gmail.com`) falla con 403 hasta que se verifique un
-dominio en Resend o se cambie `ADMIN_EMAIL`/el remitente. El error queda
-logueado en el servidor sin bloquear el registro (la cuenta se crea igual).
+API key. `ADMIN_EMAIL` está fijado a `favi.sanchez@hotmail.com` por eso
+mismo (confirmado con un envío real que llegó correctamente); usar cualquier
+otra dirección ahí falla con 403 hasta verificar un dominio.
+
+## Pendientes
+- **Dominio corporativo de Onpilot**: en cuanto exista, verificarlo en
+  resend.com/domains y cambiar `ADMIN_EMAIL` (en `.env`) al email
+  definitivo del equipo (p.ej. `hola@` o `avisos@` el dominio nuevo) — hoy
+  está en `favi.sanchez@hotmail.com` solo porque la cuenta de Resend está en
+  modo sandbox sin dominio propio.
 
 Siguiente paso sugerido: `encargo_claude_code_h2_backend.md`.
 (Actualizar esta sección después de cada encargo completado.)
