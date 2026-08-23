@@ -10,10 +10,22 @@ const cobrosRoutes = require('./routes/cobros.routes');
 const tarifarioRoutes = require('./routes/tarifario.routes');
 const cajaRoutes = require('./routes/caja.routes');
 const negocioRoutes = require('./routes/negocio.routes');
+const conversacionesRoutes = require('./routes/conversaciones.routes');
+const reactivacionRoutes = require('./routes/reactivacion.routes');
+const webhooksRoutes = require('./routes/webhooks.routes');
+const whatsappRoutes = require('./routes/whatsapp.routes');
 
 const app = express();
 
-app.use(express.json());
+// Guarda el body crudo: lo necesita el webhook de WhatsApp para verificar
+// la firma HMAC de Meta antes de confiar en el JSON ya parseado.
+app.use(
+  express.json({
+    verify: (req, res, buf) => {
+      req.rawBody = buf;
+    },
+  })
+);
 app.use(cookieParser());
 
 app.use('/api/auth', authRoutes);
@@ -23,6 +35,10 @@ app.use('/api/cobros', cobrosRoutes);
 app.use('/api/tarifario', tarifarioRoutes);
 app.use('/api/caja', cajaRoutes);
 app.use('/api/negocio', negocioRoutes);
+app.use('/api/conversaciones', conversacionesRoutes);
+app.use('/api/reactivacion', reactivacionRoutes);
+app.use('/api/webhooks', webhooksRoutes);
+app.use('/api/whatsapp', whatsappRoutes);
 
 // Frontend estático (onpilot_agenda.html, onpilot_login.html) — se sirve
 // desde public/, nunca desde la raíz del repo, para no exponer server/ ni .env.

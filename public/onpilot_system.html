@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Onpilot</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
   --green:#1D9E75; --green-dk:#0F6E56; --green-lt:#E0F5ED;
@@ -296,7 +298,52 @@ svg.ic{width:1em;height:1em;display:inline-block;vertical-align:middle;flex-shri
 .ct-lbl{font-size:13px;font-weight:500;color:var(--g800);}
 .ct-val{font-size:18px;font-weight:700;color:var(--green);}
 
-/* H2 WHATSAPP */
+/* H2 WHATSAPP — tema oscuro, con scope a #view-h2 para no tocar H4/H5, que
+   comparten este mismo archivo y siguen en el sistema visual antiguo hasta
+   que se les pase su propio encargo. Mismos nombres de variable que ya usa
+   el resto del CSS (--green, --bg, --g50...): al redefinirlas aquí dentro,
+   todas las reglas existentes las heredan sin duplicar una sola línea. */
+#view-h2{
+  --disp:'Space Grotesk',sans-serif; --body:'Manrope',sans-serif;
+  --bg:#0B0C0E; --white:#17181B;
+  --g50:#1E2023; --g100:#2A2C30; --g200:#2A2C30; --g300:#3A3D42;
+  --g400:#6B7075; --g500:#9BA0A8; --g800:#F5F5F5;
+  --green:#7ED957; --green-dk:#6BC24A; --green-lt:rgba(126,217,87,.15);
+  --amber:#F5A623; --amber-lt:rgba(245,166,35,.15);
+  --red:#F0554B; --red-lt:rgba(240,85,75,.15);
+  --blue:#5B9EF5; --blue-lt:rgba(91,158,245,.15);
+  --shsm:0 2px 8px rgba(0,0,0,.25); --shmd:0 6px 20px rgba(0,0,0,.35); --shgreen:0 6px 20px rgba(126,217,87,.3);
+  background:var(--bg); color:var(--g800); font-family:var(--body);
+}
+#view-h2 input,#view-h2 select,#view-h2 textarea,#view-h2 button{font-family:var(--body);}
+#view-h2 .conv-name,#view-h2 .chat-hd-name,#view-h2 .rcc-name,#view-h2 .rcs-v{font-family:var(--disp);}
+/* Los siguientes valores no eran variables en el CSS original (colores
+   sueltos), así que se sobrescriben aquí explícitamente para el tema oscuro. */
+#view-h2 .chat-msgs{background:#0F1013;}
+#view-h2 .day-sep,#view-h2 .msg-sys{background:rgba(255,255,255,.06);}
+#view-h2 .msg.bot .msg-bubble,#view-h2 .msg.client-m .msg-bubble{background:var(--white);box-shadow:0 1px 2px rgba(0,0,0,.3);}
+#view-h2 .msg.user-m .msg-bubble{background:#1F3D14;}
+#view-h2 .chat-input-bar{background:var(--white);}
+#view-h2 .rcc,#view-h2 .prop-card,#view-h2 .custom-wrap{background:var(--white);}
+#view-h2 .prop-card:hover{box-shadow:0 4px 16px rgba(126,217,87,.2);}
+#view-h2 .prop-card.sel{background:linear-gradient(135deg,var(--green-lt),var(--white));}
+#view-h2 .prop-msg{border-left-color:rgba(126,217,87,.5);}
+#view-h2 .pb-skip{color:#FFD4D0;}
+/* Botones "sólidos" (fondo oscuro + texto blanco en el original claro):
+   en oscuro, --g800 pasa a ser casi blanco, así que reusarlo como fondo de
+   botón rompería el contraste con el texto blanco — se cambian al verde de
+   marca, coherente con el resto de acciones primarias (.chat-send). */
+#view-h2 .conv-ftab.active{background:var(--green);color:#0D2E06;border-color:var(--green);}
+#view-h2 .chat-act.primary{background:var(--green);color:#0D2E06;border-color:var(--green);}
+#view-h2 .chat-act.primary:hover{background:var(--green-dk);}
+#view-h2 .pb-send{background:var(--green);color:#0D2E06;}
+#view-h2 .pb-send:hover{background:var(--green-dk);}
+/* Bug preexistente en el archivo original: el JS de conversaciones usa la
+   clase .mobile-hidden para alternar entre lista y chat en móvil, pero
+   nunca estaba definida en el CSS — sin esto, lista y chat se veían a la
+   vez en pantallas pequeñas. */
+@media(max-width:767px){#view-h2 .mobile-hidden{display:none!important;}}
+
 .convs-layout{flex:1;display:flex;overflow:hidden;}
 @media(max-width:767px){.convs-layout{flex-direction:column;}}
 .convs-list{width:280px;border-right:1px solid var(--g200);display:flex;flex-direction:column;flex-shrink:0;background:var(--g50);}
@@ -1382,6 +1429,49 @@ function safeEl(id) {
   return document.getElementById(id) || document.getElementById(mobileMap[id] || '__none__');
 }
 
+// ============================================================
+// API (H2 real) — mismo patrón que onpilot_agenda.html: access token en
+// memoria (nunca en Web Storage), refresh vía cookie httpOnly. El resto de
+// este archivo (H1 embebido, H4, H5) sigue sobre datos falsos, fuera de
+// alcance de este encargo.
+// ============================================================
+var accessToken = null;
+
+async function apiFetch(path, options) {
+  options = options || {};
+  var headers = Object.assign({}, options.headers || {});
+  if (accessToken) headers['Authorization'] = 'Bearer ' + accessToken;
+  var body = options.body;
+  if (body && !(body instanceof FormData) && typeof body !== 'string') {
+    headers['Content-Type'] = 'application/json';
+    body = JSON.stringify(body);
+  }
+  var res = await fetch(path, { method: options.method || 'GET', headers: headers, body: body, credentials: 'include' });
+  if (res.status === 401 && !options._retried) {
+    var ok = await refrescarSesion();
+    if (ok) return apiFetch(path, Object.assign({}, options, { _retried: true }));
+    window.location.href = '/onpilot_login.html';
+    throw new Error('No autenticado');
+  }
+  if (!res.ok) {
+    var err = await res.json().catch(function () { return { error: 'Error de red' }; });
+    throw new Error(err.error || 'Error de red');
+  }
+  if (res.status === 204) return null;
+  return res.json();
+}
+async function refrescarSesion() {
+  try {
+    var res = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'include' });
+    if (!res.ok) return false;
+    var data = await res.json();
+    accessToken = data.accessToken;
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 var avC=[['#E0F5ED','#085041'],['#EEF4FF','#1e40af'],['#FEF3C7','#92400e'],['#FDECEA','#991b1b'],['#f3e8ff','#5b21b6']];
 var MN=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 var DN=['L','M','X','J','V','S','D'];
@@ -1432,47 +1522,11 @@ var agendaData={
   5:[{h:'10:00',n:'Ana Torres',s:'Tratamiento facial · 90 min',today:false,cancelled:false}],6:[]
 };
 
-var conversations=[
-  {id:0,name:'María García',init:'MG',ci:0,phone:'666 111 222',status:'bot',unread:true,lastMsg:'Perfecto, te confirmo la cita para el viernes.',time:'hace 2 min',
-    messages:[
-      {type:'client',text:'Hola! quiero pedir cita para hacerme un facial',time:'10:32'},
-      {type:'bot',text:'¡Hola María! Soy el asistente de MiBella. Tenemos disponibles:\n• Facial hidratante — 80€ · 60 min\n• Facial antiedad — 95€ · 75 min\n\n¿Cuál te interesa?',time:'10:32'},
-      {type:'client',text:'El hidratante, cuándo tenéis hueco?',time:'10:33'},
-      {type:'bot',text:'¡Perfecto! Esta semana tenemos:\n\n📅 Jueves 15 — 10:00h, 12:00h, 17:00h\n📅 Viernes 16 — 09:30h, 11:00h, 16:00h\n\n¿Alguna te va bien?',time:'10:33'},
-      {type:'client',text:'El viernes a las 10',time:'10:34'},
-      {type:'bot',text:'¡Confirmado! ✅\n\nFacial hidratante · Viernes 16 de mayo · 10:00h\nMiBella, Calle Mayor 24\n\nTe enviaré un recordatorio el día antes.',time:'10:34'}
-    ]},
-  {id:1,name:'Pedro López',init:'PL',ci:1,phone:'666 333 444',status:'pendiente',unread:true,lastMsg:'¿Cuánto cuesta la depilación láser de piernas?',time:'hace 15 min',
-    messages:[
-      {type:'client',text:'Buenas tardes, quería saber el precio de la depilación láser de piernas',time:'09:15'},
-      {type:'bot',text:'¡Buenas! La depilación láser de piernas completas cuesta 89€ por sesión, 45 minutos. Se recomiendan 6-8 sesiones.\n\n¿Te reservo una consulta gratuita?',time:'09:15'},
-      {type:'client',text:'¿Cuánto cuesta la depilación láser de piernas?',time:'09:47'},
-      {type:'system',text:'⚠️ El paciente ha repetido la misma pregunta. El bot necesita ayuda.'}
-    ]},
-  {id:2,name:'Rosa Martínez',init:'RM',ci:2,phone:'666 555 666',status:'manual',unread:false,lastMsg:'Gracias, hablamos mañana.',time:'hace 1h',
-    messages:[
-      {type:'client',text:'Hola, tengo una consulta urgente',time:'08:30'},
-      {type:'bot',text:'Hola Rosa, voy a avisar al equipo ahora mismo.',time:'08:30'},
-      {type:'system',text:'El bot ha notificado a la profesional.'},
-      {type:'user',text:'Hola Rosa, soy Carmen. ¿En qué te puedo ayudar?',time:'08:35'},
-      {type:'client',text:'Me salió una reacción tras el último tratamiento',time:'08:36'},
-      {type:'user',text:'No te preocupes, eso ocurre a veces las primeras 24h. ¿Me mandas una foto?',time:'08:37'},
-      {type:'client',text:'Gracias, hablamos mañana.',time:'09:10'}
-    ]}
-];
-
-var inactivePatients=[
-  {id:0,name:'Sonia Blanco',init:'SB',ci:0,dias:98,lastService:'Anticelulítico',visitas:6,gasto:480,
-    proposals:[
-      {type:'Oferta de vuelta',icon:'tag',msg:'¡Hola Sonia! Han pasado unos meses y te echamos de menos 😊. Esta semana tienes un 15% de descuento en tu próxima sesión de Anticelulítico. ¿Reservamos?',coste:'0.065€'},
-      {type:'Recordatorio de revisión',icon:'refresh',msg:'Hola Sonia, han pasado 3 meses desde tu último Anticelulítico. Para mantener los resultados, lo ideal es una sesión de mantenimiento. ¿Te buscamos un hueco?',coste:'0.065€'}
-    ]},
-  {id:1,name:'Isabel Gómez',init:'IG',ci:1,dias:87,lastService:'Radiofrecuencia corporal',visitas:9,gasto:720,
-    proposals:[
-      {type:'Oferta VIP exclusiva',icon:'star',msg:'Hola Isabel, como clienta VIP tienes acceso prioritario a nuestra agenda. Llevamos casi 3 meses sin verte. ¿Agendamos? Te reservamos tu horario habitual.',coste:'0.065€'},
-      {type:'Recordatorio de mantenimiento',icon:'refresh',msg:'Hola Isabel, para mantener los resultados de la Radiofrecuencia corporal se recomienda cada 6-8 semanas. Ya llevas más de 3 meses. ¿Retomamos?',coste:'0.065€'}
-    ]}
-];
+// Se rellenan con fetch a la API real (h2Cargar) — misma forma que antes
+// para no tocar los renders (conversations[].messages ya no viene incluido
+// en la lista, se pide aparte al abrir el chat: ver h2RenderChat).
+var conversations=[];
+var inactivePatients=[];
 
 var h1SelC=0, h1OpenAppt=-1, h1OpenCobro=-1, h1EditingC=false, h1Filtered=clients.slice();
 var h1WeekIdx=1, h1DayIdx=0, h1CajaP='dia';
@@ -1500,7 +1554,7 @@ function navigate(v){
   if(fab) fab.className='m-fab'+(v==='h1'?' vis':'');
   if(v==='dashboard') renderDash();
   if(v==='h1'){h1RenderSB();h1RenderSB2();h1RenderDT();h1RenderAL();}
-  if(v==='h2'){h2RenderCL();h2RenderRL();h2ShowList();}
+  if(v==='h2'){h2Cargar();}
   if(v==='h5'){h5Init();}
   if(v==='h4'){h4SwTab('crear');if(window.innerWidth<768){
     h4MStep=1;
@@ -1879,6 +1933,22 @@ function h1RenderCaja(){
 function h1SetP(p){h1CajaP=p;['dia','semana','mes','anio'].forEach(function(t){document.getElementById('h1-ct-'+t).classList.toggle('active',t===p);});h1RenderCaja();}
 
 // H2
+async function h2Cargar(){
+  try{ conversations = await apiFetch('/api/conversaciones'); }catch(e){ conversations = []; }
+  try{ inactivePatients = await apiFetch('/api/reactivacion/pendientes'); }catch(e){ inactivePatients = []; }
+  h2RenderCL();
+  h2RenderRL();
+  h2ShowList();
+}
+async function h2RefrescarConv(id){
+  try{ conversations = await apiFetch('/api/conversaciones'); }catch(e){}
+  h2RenderCL();
+  if(id!==undefined) await h2RenderChat(id);
+}
+async function h2RefrescarReact(){
+  try{ inactivePatients = await apiFetch('/api/reactivacion/pendientes'); }catch(e){}
+  h2RenderRL();
+}
 function h2Sw(tab){
   ['convs','react'].forEach(function(t){
     document.getElementById('h2-tab-'+t).classList.toggle('active',t===tab);
@@ -1898,9 +1968,9 @@ function h2RenderCL(){
   var uc=conversations.filter(function(c){return c.unread;}).length;
   var el=document.getElementById('h2-cvlist');if(!el)return;
   var html=filtered.map(function(conv){
-    var ri=conversations.indexOf(conv),av=avC[conv.ci];
+    var av=avC[conv.ci];
     var sIcon=conv.status==='bot'?'<div class="conv-sdot cs-bot">B</div>':(conv.status==='pendiente'?'<div class="conv-sdot cs-pend">!</div>':'<div class="conv-sdot cs-human">✓</div>');
-    return '<div class="conv-item'+(ri===selConv?' active':'')+'" data-ci="'+ri+'"><div class="conv-av" style="background:'+av[0]+';color:'+av[1]+'">'+conv.init+'</div><div class="conv-info"><div class="conv-name">'+conv.name+(conv.unread?'<div class="unread-dot"></div>':'')+'</div><div class="conv-prev">'+conv.lastMsg+'</div></div><div class="conv-meta"><div class="conv-time">'+conv.time+'</div>'+sIcon+'</div></div>';
+    return '<div class="conv-item'+(conv.id===selConv?' active':'')+'" data-ci="'+conv.id+'"><div class="conv-av" style="background:'+av[0]+';color:'+av[1]+'">'+conv.init+'</div><div class="conv-info"><div class="conv-name">'+conv.name+(conv.unread?'<div class="unread-dot"></div>':'')+'</div><div class="conv-prev">'+conv.lastMsg+'</div></div><div class="conv-meta"><div class="conv-time">'+conv.time+'</div>'+sIcon+'</div></div>';
   }).join('');
   el.innerHTML=html;
   el.querySelectorAll('.conv-item').forEach(function(n){n.addEventListener('click',function(){selConv=parseInt(n.getAttribute('data-ci'));h2RenderCL();h2RenderChat(selConv);});});
@@ -1928,25 +1998,30 @@ function h2ShowChat(){
     if(cv) cv.style.display='flex';
   }
 }
-function h2RenderChat(id){
-  var conv=conversations[id];if(!conv){return;}
+function h2FormatHora(iso){
+  return new Date(iso).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+}
+async function h2RenderChat(id){
+  var conv=conversations.find(function(c){return c.id===id;});if(!conv){return;}
   conv.unread=false;
+  var mensajes=[];
+  try{ mensajes = await apiFetch('/api/conversaciones/'+id+'/mensajes'); }catch(e){}
   var av=avC[conv.ci];
   var stCls=conv.status==='bot'?'bot-st':(conv.status==='pendiente'?'pend-st':'human-st');
   var stTxt=conv.status==='bot'?'⚡ Bot gestionando':(conv.status==='pendiente'?'⚠ Pendiente de revisión':'👤 Profesional en control');
   var actBtns=conv.status==='bot'?'<button class="chat-act primary" onclick="h2TakeCtrl('+id+')">👤 Tomar control</button>':(conv.status==='manual'?'<button class="chat-act" onclick="h2GiveBot('+id+')">⚡ Ceder al bot</button>':'<button class="chat-act primary" onclick="h2TakeCtrl('+id+')">Responder</button>');
   var msgsHtml='<div class="day-sep">Hoy, '+today.getDate()+' de '+MN[today.getMonth()]+'</div>';
-  conv.messages.forEach(function(msg){
-    if(msg.type==='system'){msgsHtml+='<div class="msg-sys">'+msg.text+'</div>';return;}
-    var mc=msg.type==='bot'?'bot':(msg.type==='client'?'client-m':'user-m');
-    var sH=msg.type==='bot'?'<div class="msg-sender bot-s">⚡ Bot Onpilot</div>':(msg.type==='user'?'<div class="msg-sender">👤 Tú</div>':'');
-    msgsHtml+='<div class="msg '+mc+'">'+sH+'<div class="msg-bubble">'+msg.text.replace(/\n/g,'<br>')+'</div><div class="msg-time">'+msg.time+'</div></div>';
+  mensajes.forEach(function(msg){
+    if(msg.type==='sistema'){msgsHtml+='<div class="msg-sys">'+msg.text+'</div>';return;}
+    var mc=msg.type==='bot'?'bot':(msg.type==='cliente'?'client-m':'user-m');
+    var sH=msg.type==='bot'?'<div class="msg-sender bot-s">⚡ Bot Onpilot</div>':(msg.type==='profesional'?'<div class="msg-sender">👤 Tú</div>':'');
+    msgsHtml+='<div class="msg '+mc+'">'+sH+'<div class="msg-bubble">'+msg.text.replace(/\n/g,'<br>')+'</div><div class="msg-time">'+h2FormatHora(msg.creado_en)+'</div></div>';
   });
   var chatEl=document.getElementById('h2-chat');if(!chatEl)return;
   var backBtn='<button class="m-back-btn" onclick="h2ShowList()" style="display:none;background:none;border:none;cursor:pointer;padding:4px 8px 4px 0;color:var(--green);font-size:13px;font-weight:500;font-family:inherit;align-items:center;gap:4px;">&#8592; Volver</button>';
   chatEl.innerHTML='<div class="chat-hd">'+backBtn+'<div class="chat-av" style="background:'+av[0]+';color:'+av[1]+'">'+conv.init+'</div><div class="chat-hd-info"><div class="chat-hd-name">'+conv.name+'</div><div class="chat-hd-status '+stCls+'">'+stTxt+'</div></div><div class="chat-acts">'+actBtns+'</div></div>'
     +'<div class="chat-msgs" id="h2-msgs">'+msgsHtml+'</div>'
-    +(conv.status!=='bot'?'<div class="chat-input-bar"><input type="text" class="chat-input" placeholder="Escribe un mensaje..." id="h2-ci" id="h2-ci"/><button class="chat-send" onclick="h2Send('+id+')"><svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:#fff;stroke-width:2;fill:none;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></div>':'<div style="padding:10px 14px;background:var(--g50);border-top:1px solid var(--g200);text-align:center;font-size:12px;color:var(--g500);">⚡ El bot está gestionando. Haz clic en "Tomar control" para intervenir.</div>');
+    +(conv.status!=='bot'?'<div class="chat-input-bar"><input type="text" class="chat-input" placeholder="Escribe un mensaje..." id="h2-ci"/><button class="chat-send" onclick="h2Send('+id+')"><svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:#fff;stroke-width:2;fill:none;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></div>':'<div style="padding:10px 14px;background:var(--g50);border-top:1px solid var(--g200);text-align:center;font-size:12px;color:var(--g500);">⚡ El bot está gestionando. Haz clic en "Tomar control" para intervenir.</div>');
   var ms=document.getElementById('h2-msgs');if(ms)ms.scrollTop=ms.scrollHeight;
   // Mobile: show chat, hide list, show back button
   h2ShowChat();
@@ -1954,51 +2029,74 @@ function h2RenderChat(id){
   if(bb&&window.innerWidth<768) bb.style.display='flex';
   var ci=document.getElementById('h2-ci');
   if(ci) ci.addEventListener('keydown',function(e){if(e.key==='Enter'){h2Send(id);}});
-  var ci=document.getElementById('h2-ci');
-  if(ci) ci.addEventListener('keydown',function(e){if(e.key==='Enter'){h2Send(id);}});
 }
-function h2TakeCtrl(id){conversations[id].status='manual';h2RenderCL();h2RenderChat(id);}
-function h2GiveBot(id){conversations[id].status='bot';h2RenderCL();h2RenderChat(id);}
-function h2Send(id){var ci=document.getElementById('h2-ci');if(!ci||!ci.value.trim())return;var txt=ci.value.trim();conversations[id].messages.push({type:'user',text:txt,time:'ahora'});conversations[id].lastMsg=txt;ci.value='';h2RenderChat(id);h2RenderCL();}
+async function h2TakeCtrl(id){
+  try{ await apiFetch('/api/conversaciones/'+id+'/control',{method:'PATCH',body:{estado:'manual'}}); }catch(e){alert(e.message);return;}
+  await h2RefrescarConv(id);
+}
+async function h2GiveBot(id){
+  try{ await apiFetch('/api/conversaciones/'+id+'/control',{method:'PATCH',body:{estado:'bot'}}); }catch(e){alert(e.message);return;}
+  await h2RefrescarConv(id);
+}
+async function h2Send(id){
+  var ci=document.getElementById('h2-ci');if(!ci||!ci.value.trim())return;
+  var txt=ci.value.trim();ci.value='';
+  try{ await apiFetch('/api/conversaciones/'+id+'/mensajes',{method:'POST',body:{contenido:txt}}); }catch(e){alert(e.message);return;}
+  await h2RefrescarConv(id);
+}
 function h2RenderRL(){
   var el=document.getElementById('h2-rlist');if(!el)return;
-  var html=inactivePatients.map(function(p,i){
+  var html=inactivePatients.map(function(p){
     var av=avC[p.ci];
-    return '<div class="react-item'+(i===selReact?' active':'')+'" data-ri="'+i+'"><div class="react-days">'+p.dias+'<span>días</span></div><div class="cav" style="background:'+av[0]+';color:'+av[1]+';width:32px;height:32px;font-size:11px;">'+p.init+'</div><div><div class="react-name">'+p.name+'</div><div class="react-svc">Último: '+p.lastService+'</div></div></div>';
+    return '<div class="react-item'+(p.cliente_id===selReact?' active':'')+'" data-ri="'+p.cliente_id+'"><div class="react-days">'+(p.dias==null?'—':p.dias)+'<span>días</span></div><div class="cav" style="background:'+av[0]+';color:'+av[1]+';width:32px;height:32px;font-size:11px;">'+p.init+'</div><div><div class="react-name">'+p.name+'</div><div class="react-svc">Último: '+p.lastService+'</div></div></div>';
   }).join('');
   el.innerHTML=html;
   el.querySelectorAll('.react-item').forEach(function(n){n.addEventListener('click',function(){selReact=parseInt(n.getAttribute('data-ri'));h2RenderRL();h2RenderRP(selReact);});});
   var rc=document.getElementById('h2-rc');if(rc) rc.textContent=inactivePatients.length+' pacientes';
 }
-function h2RenderRP(idx){
-  var p=inactivePatients[idx],av=avC[p.ci];
+function h2RenderRP(clienteId){
+  var p=inactivePatients.find(function(x){return x.cliente_id===clienteId;});
+  if(!p){return;}
+  var av=avC[p.ci];
   var el=document.getElementById('h2-rpanel');if(!el)return;
   var html='<div class="rcc"><div class="rcc-hd"><div class="cav" style="background:'+av[0]+';color:'+av[1]+';width:44px;height:44px;font-size:15px;">'+p.init+'</div><div><div class="rcc-name">'+p.name+'</div><div class="rcc-meta">Último: '+p.lastService+'</div></div></div>'
-    +'<div class="rcc-stats"><div class="rcs"><div class="rcs-l">DÍAS INACTIVO</div><div class="rcs-v amb">'+p.dias+'</div></div><div class="rcs"><div class="rcs-l">VISITAS</div><div class="rcs-v">'+p.visitas+'</div></div><div class="rcs"><div class="rcs-l">GASTO TOTAL</div><div class="rcs-v">'+p.gasto+'€</div></div></div></div>'
+    +'<div class="rcc-stats"><div class="rcs"><div class="rcs-l">DÍAS INACTIVO</div><div class="rcs-v amb">'+(p.dias==null?'—':p.dias)+'</div></div><div class="rcs"><div class="rcs-l">VISITAS</div><div class="rcs-v">'+p.visitas+'</div></div><div class="rcs"><div class="rcs-l">GASTO TOTAL</div><div class="rcs-v">'+p.gasto+'€</div></div></div></div>'
     +'<div class="prop-title">PROPUESTAS DEL SISTEMA</div>';
   p.proposals.forEach(function(prop,i){
-    if(prop.type==='Mensaje personalizado'){
-      html+='<div class="custom-wrap"><div class="custom-title">✏ MENSAJE PERSONALIZADO</div><textarea placeholder="Escribe tu mensaje de reactivación para '+p.name+'..."></textarea><div class="custom-footer"><div class="custom-cost">💰 Coste: '+prop.coste+'</div><button class="btn-send-c" onclick="h2Send2('+idx+','+i+',true)">📤 Enviar</button></div></div>';
-    } else {
-      var isSel=selProposals[idx]===i;
-      html+='<div class="prop-card'+(isSel?' sel':'')+'" data-pi="'+i+'" data-pati="'+idx+'">'
-        +'<div class="prop-hd"><div class="prop-type">'+prop.type+'</div><div class="prop-cost">💰 '+prop.coste+'</div></div>'
-        +'<div class="prop-msg">'+prop.msg+'</div>'
-        +'<div class="prop-acts"><button class="pb pb-send" data-send="'+i+'" data-pati2="'+idx+'">📤 Enviar ahora</button><button class="pb pb-edit">✏ Editar</button><button class="pb pb-skip" data-skip="'+idx+'">✕ Descartar</button></div>'
-        +'</div>';
-    }
+    var isSel=selProposals[clienteId]===i;
+    html+='<div class="prop-card'+(isSel?' sel':'')+'" data-pi="'+i+'" data-pati="'+clienteId+'">'
+      +'<div class="prop-hd"><div class="prop-type">'+prop.type+'</div><div class="prop-cost">💰 '+prop.coste+'</div></div>'
+      +'<div class="prop-msg">'+prop.msg+'</div>'
+      +'<div class="prop-acts"><button class="pb pb-send" data-send="'+prop.id+'">📤 Enviar ahora</button><button class="pb pb-edit" data-edit="'+prop.id+'" data-msg="'+prop.msg.replace(/"/g,'&quot;')+'">✏ Editar</button><button class="pb pb-skip" data-skip="'+prop.id+'">✕ Descartar</button></div>'
+      +'</div>';
   });
   el.innerHTML=html;
-  el.querySelectorAll('.prop-card').forEach(function(n){n.addEventListener('click',function(){selProposals[parseInt(n.getAttribute('data-pati'))]=parseInt(n.getAttribute('data-pi'));h2RenderRP(idx);});});
-  el.querySelectorAll('[data-send]').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();h2Send2(parseInt(b.getAttribute('data-pati2')),parseInt(b.getAttribute('data-send')),false);});});
+  el.querySelectorAll('.prop-card').forEach(function(n){n.addEventListener('click',function(){selProposals[parseInt(n.getAttribute('data-pati'))]=parseInt(n.getAttribute('data-pi'));h2RenderRP(clienteId);});});
+  el.querySelectorAll('[data-send]').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();h2Send2(parseInt(b.getAttribute('data-send')));});});
+  el.querySelectorAll('[data-edit]').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();h2EditarProp(parseInt(b.getAttribute('data-edit')),clienteId,b.getAttribute('data-msg'));});});
   el.querySelectorAll('[data-skip]').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();h2Skip(parseInt(b.getAttribute('data-skip')));});});
 }
-function h2Send2(pati,pi,custom){
-  inactivePatients.splice(pati,1);selReact=-1;h2RenderRL();
-  var el=document.getElementById('h2-rpanel');if(el) el.innerHTML='<div class="react-empty"><span style="font-size:36px;color:var(--green);">✓</span><p>Mensaje enviado correctamente</p></div>';
+async function h2EditarProp(propId,clienteId,textoActual){
+  var nuevo=window.prompt('Edita el mensaje antes de enviarlo:',textoActual);
+  if(nuevo===null||!nuevo.trim())return;
+  try{ await apiFetch('/api/reactivacion/'+propId,{method:'PATCH',body:{mensaje_sugerido:nuevo.trim()}}); }catch(e){alert(e.message);return;}
+  await h2RefrescarReact();
+  h2RenderRP(clienteId);
+}
+async function h2Send2(propId){
+  try{ await apiFetch('/api/reactivacion/'+propId+'/enviar',{method:'POST'}); }catch(e){alert(e.message);return;}
+  selReact=-1;
+  await h2RefrescarReact();
+  var el=document.getElementById('h2-rpanel');
+  if(el) el.innerHTML='<div class="react-empty"><span style="font-size:36px;color:var(--green);">✓</span><p>Mensaje enviado correctamente</p></div>';
   setTimeout(function(){if(el) el.innerHTML='<div class="react-empty"><p>Selecciona un paciente para ver propuestas</p></div>';},3000);
 }
-function h2Skip(pati){inactivePatients.splice(pati,1);selReact=-1;h2RenderRL();var el=document.getElementById('h2-rpanel');if(el)el.innerHTML='<div class="react-empty"><p>Selecciona un paciente</p></div>';}
+async function h2Skip(propId){
+  try{ await apiFetch('/api/reactivacion/'+propId,{method:'DELETE'}); }catch(e){alert(e.message);return;}
+  selReact=-1;
+  await h2RefrescarReact();
+  var el=document.getElementById('h2-rpanel');if(el)el.innerHTML='<div class="react-empty"><p>Selecciona un paciente</p></div>';
+}
 
 // SETTINGS
 function openSettings(sec){
@@ -2086,7 +2184,10 @@ document.addEventListener('click', function(e) {
   }
 });
 
-window.addEventListener('DOMContentLoaded', function() {
+window.addEventListener('DOMContentLoaded', async function() {
+  var sesionOk = await refrescarSesion();
+  if(!sesionOk){ window.location.href = '/onpilot_login.html'; return; }
+
   setTimeout(function(){
     var s=document.getElementById('splash');
     if(s){s.classList.add('out');setTimeout(function(){s.style.display='none';},650);}
@@ -2095,7 +2196,7 @@ window.addEventListener('DOMContentLoaded', function() {
   renderCal();
   renderDash();
   h1RenderSB();h1RenderSB2();h1RenderDT();h1RenderAL();
-  h2RenderCL();h2RenderRL();
+  h2Cargar();
   renderSettSvcs();renderBotQ();
   // H4 desktop init
   if(window.innerWidth>=768){

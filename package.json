@@ -9,7 +9,8 @@
     "dev": "nodemon server/index.js",
     "migrate": "node server/db/migrate.js",
     "seed": "node server/db/seed.js",
-    "seed:reset": "node server/db/seed.js --reset"
+    "seed:reset": "node server/db/seed.js --reset",
+    "seed:h2": "node server/db/seed-h2.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
@@ -19,6 +20,7 @@
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.0",
+    "node-cron": "^4.6.0",
     "pg": "^8.11.5"
   },
   "devDependencies": {
