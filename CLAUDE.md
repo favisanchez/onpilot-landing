@@ -37,8 +37,33 @@ backend por separado) y que los negocios demo de H1 siguen pudiendo iniciar
 sesión sin problema. Permisos de cámara/micrófono quedan documentados como
 convención para cuando se construyan H3/H4 (no hay ningún punto de la app
 hoy que los necesite); la importación de clientes de H1 ya usaba el selector
-de archivo nativo, sin cambios. Siguiente paso sugerido:
-`encargo_claude_code_h2_backend.md`.
+de archivo nativo, sin cambios.
+
+Ampliación de registro completada: catálogo de sectores ampliado a 10 fijos +
+"Otro" (`public/onpilot_login.html`). Si el negocio elige "Otro", el registro
+exige descripción libre + URL (validada con `URL` nativo, normalizando el
+protocolo si falta) y la cuenta se crea con `estado='pendiente_revision'` en
+vez de `'activo'` (migración `003_negocios_otro.sql`) — ni el registro ni el
+login emiten sesión para una cuenta pendiente; en su lugar la API devuelve
+`{pendiente:true, negocio}` y el frontend muestra una pantalla explicando que
+está pendiente de revisión, sin acceso a la app. Al crearse, se envía un
+aviso por email a `ADMIN_EMAIL` (`server/services/email.service.js`, vía
+Resend) con nombre, descripción, enlace y contacto del negocio.
+
+**Activar una cuenta pendiente a mano** (no hay backoffice todavía):
+```sql
+UPDATE negocios SET estado = 'activo' WHERE email = '<email-del-negocio>';
+```
+
+**Aviso sobre Resend**: la cuenta usada es de prueba (sin dominio verificado
+en resend.com/domains), así que solo puede enviar a la dirección dueña de la
+API key (`favi.sanchez@hotmail.com`, confirmado enviando un email real que
+llegó correctamente) — enviar a `ADMIN_EMAIL` actual
+(`favi.sanchez.cano@gmail.com`) falla con 403 hasta que se verifique un
+dominio en Resend o se cambie `ADMIN_EMAIL`/el remitente. El error queda
+logueado en el servidor sin bloquear el registro (la cuenta se crea igual).
+
+Siguiente paso sugerido: `encargo_claude_code_h2_backend.md`.
 (Actualizar esta sección después de cada encargo completado.)
 
 ## Reglas de negocio que no se tocan sin confirmarlo antes

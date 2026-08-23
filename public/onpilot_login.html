@@ -87,14 +87,28 @@
       <div class="field"><label>Nombre del negocio</label><input type="text" id="reg-nombre" required></div>
       <div class="field">
         <label>Sector</label>
-        <select id="reg-sector" required>
+        <select id="reg-sector" required onchange="mostrarCamposOtro()">
           <option value="">Selecciona un sector</option>
           <option value="fisioterapia">Fisioterapia</option>
-          <option value="estetica">Estética / belleza</option>
+          <option value="estetica">Estética/Belleza</option>
+          <option value="medicina_estetica">Medicina estética</option>
           <option value="nutricion">Nutrición</option>
-          <option value="entrenador_personal">Entrenador personal</option>
+          <option value="psicologia">Psicología</option>
+          <option value="podologia">Podología</option>
+          <option value="entrenador_personal">Entrenador personal/Fitness</option>
+          <option value="peluqueria">Peluquería</option>
+          <option value="spa_bienestar">Spa/Bienestar</option>
+          <option value="terapias_alternativas">Terapias alternativas</option>
           <option value="otro">Otro</option>
         </select>
+      </div>
+      <div class="field" id="campo-otro-descripcion" style="display:none;">
+        <label>Describe tu negocio</label>
+        <textarea id="reg-otro-descripcion" rows="3" style="width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:10px;font-family:var(--body);font-size:14px;background:var(--bg);resize:vertical;"></textarea>
+      </div>
+      <div class="field" id="campo-otro-web" style="display:none;">
+        <label>Enlace a tu web o ficha de Google Business</label>
+        <input type="url" id="reg-otro-web" placeholder="https://...">
       </div>
       <div class="field"><label>Email</label><input type="email" id="reg-email" required></div>
       <div class="field"><label>Contraseña</label><input type="password" id="reg-password" minlength="8" required></div>
@@ -104,6 +118,11 @@
       </label>
       <button type="submit" id="registro-btn">Crear cuenta</button>
     </form>
+
+    <div id="pantalla-pendiente" style="display:none;text-align:center;">
+      <h1>Cuenta creada — pendiente de revisión</h1>
+      <p class="sub" id="pendiente-texto"></p>
+    </div>
   </div>
 </div>
 
@@ -124,7 +143,28 @@ function ocultarError(id){
   document.getElementById(id).classList.remove('show');
 }
 
+function mostrarCamposOtro(){
+  var esOtro = document.getElementById('reg-sector').value === 'otro';
+  document.getElementById('campo-otro-descripcion').style.display = esOtro ? 'flex' : 'none';
+  document.getElementById('campo-otro-web').style.display = esOtro ? 'flex' : 'none';
+  document.getElementById('reg-otro-descripcion').required = esOtro;
+  document.getElementById('reg-otro-web').required = esOtro;
+}
+
+function mostrarPendiente(negocio){
+  document.querySelector('.tabs').style.display = 'none';
+  document.getElementById('form-login').classList.remove('active');
+  document.getElementById('form-registro').classList.remove('active');
+  document.getElementById('pendiente-texto').textContent =
+    'Gracias, ' + negocio.nombre + '. Tu cuenta está pendiente de revisión — Onpilot se pondrá en contacto contigo en breve a ' + negocio.email + '.';
+  document.getElementById('pantalla-pendiente').style.display = 'block';
+}
+
 function guardarSesionYRedirigir(data){
+  if(data.pendiente){
+    mostrarPendiente(data.negocio);
+    return;
+  }
   // El access token no se guarda en ningún Web Storage (riesgo de XSS): la
   // cookie httpOnly de refresh que ya puso el servidor es suficiente para
   // que onpilot_agenda.html pida su propio access token al cargar.
@@ -178,6 +218,8 @@ async function enviarRegistro(ev){
         email: document.getElementById('reg-email').value,
         password: document.getElementById('reg-password').value,
         acepta_terminos: aceptaTerminos,
+        otro_descripcion: document.getElementById('reg-otro-descripcion').value,
+        otro_web: document.getElementById('reg-otro-web').value,
       }),
     });
     var data = await res.json();
