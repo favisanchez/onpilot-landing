@@ -12,7 +12,19 @@ H4 (contenido redes), H5 (panel de control), H6 (ficha de Google).
 - WhatsApp: Cloud API directa de Meta (sin BSP intermediario)
 
 ## Estado actual
-Proyecto recién clonado, sin backend real todavía. Empezando por H1.
+H1 (agenda y clientes) completado: backend real en Node/Express + PostgreSQL
+con auth (JWT access + refresh token rotado en cookie httpOnly), multi-tenant
+(`negocio_id` en todas las tablas), endpoints de clientes/citas/cobros/
+tarifario/caja/negocio, y `onpilot_agenda.html` (movido a `public/`) rewireado
+a la API real conservando todos los nombres de función originales. Rediseño
+visual aplicado (verde `#7ED957`, Space Grotesk + Manrope, iconos Tabler
+intactos). 4 negocios demo sembrados (fisioterapia, estética, nutrición,
+entrenador personal), password `demo1234` para todos. Ver
+`server/` para el código del backend y `public/onpilot_login.html` para el
+login/registro. Probado manualmente en desktop y móvil (login, cobro con
+descuento VIP, edición de cliente/tarifario, importación CSV, caja, semana de
+agenda) y persistencia confirmada tras reiniciar el servidor. Siguiente paso
+sugerido: `encargo_claude_code_registro_permisos.md`.
 (Actualizar esta sección después de cada encargo completado.)
 
 ## Reglas de negocio que no se tocan sin confirmarlo antes

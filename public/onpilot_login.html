@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Onpilot — Acceso</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5F5F0;
+    --card:#FFFFFF;
+    --border:#E4E4DE;
+    --green:#7ED957;
+    --green-dk:#6BC24A;
+    --text:#1A1A18;
+    --gray:#6B6B63;
+    --red:#C0392B;
+    --disp:'Space Grotesk',sans-serif;
+    --body:'Manrope',sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+    background:var(--bg); font-family:var(--body); color:var(--text);
+  }
+  .wrap{ width:100%; max-width:420px; padding:24px; }
+  .logo{ font-family:var(--disp); font-weight:700; font-size:24px; text-align:center; margin-bottom:24px; }
+  .logo span{ color:var(--green-dk); }
+  .card{
+    background:var(--card); border:1px solid var(--border); border-radius:20px;
+    padding:32px; box-shadow:0 8px 24px rgba(0,0,0,0.04);
+  }
+  h1{ font-family:var(--disp); font-size:20px; margin:0 0 4px; }
+  .sub{ color:var(--gray); font-size:14px; margin:0 0 24px; }
+  .tabs{ display:flex; gap:4px; background:var(--bg); border-radius:12px; padding:4px; margin-bottom:24px; }
+  .tab{
+    flex:1; text-align:center; padding:10px; border-radius:9px; cursor:pointer;
+    font-weight:600; font-size:14px; color:var(--gray);
+  }
+  .tab.active{ background:var(--card); color:var(--text); box-shadow:0 1px 3px rgba(0,0,0,0.08); }
+  form{ display:none; flex-direction:column; gap:14px; }
+  form.active{ display:flex; }
+  label{ font-size:13px; font-weight:600; color:var(--text); }
+  input, select{
+    width:100%; padding:12px 14px; border:1px solid var(--border); border-radius:10px;
+    font-family:var(--body); font-size:14px; background:var(--bg);
+  }
+  input:focus, select:focus{ outline:none; border-color:var(--green); }
+  .field{ display:flex; flex-direction:column; gap:6px; }
+  button[type=submit]{
+    margin-top:8px; background:var(--green); color:#0D2E06; border:none; border-radius:10px;
+    padding:13px; font-family:var(--body); font-weight:700; font-size:15px; cursor:pointer;
+  }
+  button[type=submit]:hover{ background:var(--green-dk); }
+  button[type=submit]:disabled{ opacity:0.6; cursor:default; }
+  .error{ display:none; background:#FCEBEB; color:var(--red); border-radius:10px; padding:10px 14px; font-size:13px; }
+  .error.show{ display:block; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">on<span>pilot</span></div>
+  <div class="card">
+    <div class="tabs">
+      <div class="tab active" id="tab-login" onclick="mostrar('login')">Iniciar sesión</div>
+      <div class="tab" id="tab-registro" onclick="mostrar('registro')">Crear cuenta</div>
+    </div>
+
+    <form id="form-login" class="active" onsubmit="return enviarLogin(event)">
+      <h1>Bienvenido de nuevo</h1>
+      <p class="sub">Inicia sesión con tu cuenta de negocio.</p>
+      <div class="error" id="login-error"></div>
+      <div class="field"><label>Email</label><input type="email" id="login-email" required></div>
+      <div class="field"><label>Contraseña</label><input type="password" id="login-password" required></div>
+      <button type="submit" id="login-btn">Entrar</button>
+    </form>
+
+    <form id="form-registro" onsubmit="return enviarRegistro(event)">
+      <h1>Crea tu cuenta</h1>
+      <p class="sub">Registra tu negocio para empezar a usar Onpilot.</p>
+      <div class="error" id="registro-error"></div>
+      <div class="field"><label>Nombre del negocio</label><input type="text" id="reg-nombre" required></div>
+      <div class="field">
+        <label>Sector</label>
+        <select id="reg-sector" required>
+          <option value="">Selecciona un sector</option>
+          <option value="fisioterapia">Fisioterapia</option>
+          <option value="estetica">Estética / belleza</option>
+          <option value="nutricion">Nutrición</option>
+          <option value="entrenador_personal">Entrenador personal</option>
+          <option value="otro">Otro</option>
+        </select>
+      </div>
+      <div class="field"><label>Email</label><input type="email" id="reg-email" required></div>
+      <div class="field"><label>Contraseña</label><input type="password" id="reg-password" minlength="8" required></div>
+      <button type="submit" id="registro-btn">Crear cuenta</button>
+    </form>
+  </div>
+</div>
+
+<script>
+function mostrar(cual){
+  document.getElementById('tab-login').classList.toggle('active', cual==='login');
+  document.getElementById('tab-registro').classList.toggle('active', cual==='registro');
+  document.getElementById('form-login').classList.toggle('active', cual==='login');
+  document.getElementById('form-registro').classList.toggle('active', cual==='registro');
+}
+
+function mostrarError(id, msg){
+  var el = document.getElementById(id);
+  el.textContent = msg;
+  el.classList.add('show');
+}
+function ocultarError(id){
+  document.getElementById(id).classList.remove('show');
+}
+
+function guardarSesionYRedirigir(data){
+  // El access token no se guarda en ningún Web Storage (riesgo de XSS): la
+  // cookie httpOnly de refresh que ya puso el servidor es suficiente para
+  // que onpilot_agenda.html pida su propio access token al cargar.
+  window.location.href = '/onpilot_agenda.html';
+}
+
+async function enviarLogin(ev){
+  ev.preventDefault();
+  ocultarError('login-error');
+  var btn = document.getElementById('login-btn');
+  btn.disabled = true;
+  try{
+    var res = await fetch('/api/auth/login', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      credentials:'include',
+      body: JSON.stringify({
+        email: document.getElementById('login-email').value,
+        password: document.getElementById('login-password').value,
+      }),
+    });
+    var data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'No se pudo iniciar sesión');
+    guardarSesionYRedirigir(data);
+  }catch(err){
+    mostrarError('login-error', err.message);
+  }finally{
+    btn.disabled = false;
+  }
+  return false;
+}
+
+async function enviarRegistro(ev){
+  ev.preventDefault();
+  ocultarError('registro-error');
+  var btn = document.getElementById('registro-btn');
+  btn.disabled = true;
+  try{
+    var res = await fetch('/api/auth/registro', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      credentials:'include',
+      body: JSON.stringify({
+        nombre: document.getElementById('reg-nombre').value,
+        sector: document.getElementById('reg-sector').value,
+        email: document.getElementById('reg-email').value,
+        password: document.getElementById('reg-password').value,
+      }),
+    });
+    var data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'No se pudo crear la cuenta');
+    guardarSesionYRedirigir(data);
+  }catch(err){
+    mostrarError('registro-error', err.message);
+  }finally{
+    btn.disabled = false;
+  }
+  return false;
+}
+</script>
+</body>
+</html>
