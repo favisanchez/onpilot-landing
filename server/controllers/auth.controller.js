@@ -8,6 +8,7 @@ const {
   rotateRefreshToken,
   revokeRefreshToken,
 } = require('../services/tokens.service');
+const { TERMINOS_VERSION } = require('../config/legal');
 
 const REFRESH_COOKIE_NAME = 'refresh_token';
 const REFRESH_COOKIE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
@@ -34,12 +35,19 @@ async function emitirSesion(res, negocioRow) {
 }
 
 async function registro(req, res) {
-  const { nombre, sector, email, password } = req.body || {};
+  const { nombre, sector, email, password, acepta_terminos } = req.body || {};
   if (!nombre || !sector || !email || !password) {
     return res.status(400).json({ error: 'Faltan campos obligatorios (nombre, sector, email, password)' });
   }
   if (String(password).length < 8) {
     return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres' });
+  }
+  // Nunca confiar solo en el frontend para algo con implicación legal: el
+  // registro no puede completarse sin esta aceptación explícita.
+  if (acepta_terminos !== true) {
+    return res
+      .status(400)
+      .json({ error: 'Debes aceptar los Términos de Uso y la Política de Privacidad para registrarte' });
   }
 
   const { rows: existentes } = await pool.query('SELECT id FROM negocios WHERE email = $1', [
@@ -51,9 +59,9 @@ async function registro(req, res) {
 
   const passwordHash = await bcrypt.hash(password, 12);
   const { rows } = await pool.query(
-    `INSERT INTO negocios (nombre, sector, email, password_hash)
-     VALUES ($1, $2, $3, $4) RETURNING id, nombre, sector, email`,
-    [nombre, sector, email.toLowerCase(), passwordHash]
+    `INSERT INTO negocios (nombre, sector, email, password_hash, terminos_version, terminos_aceptados_en)
+     VALUES ($1, $2, $3, $4, $5, now()) RETURNING id, nombre, sector, email`,
+    [nombre, sector, email.toLowerCase(), passwordHash, TERMINOS_VERSION]
   );
 
   const sesion = await emitirSesion(res, rows[0]);

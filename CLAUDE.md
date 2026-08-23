@@ -23,8 +23,22 @@ entrenador personal), password `demo1234` para todos. Ver
 `server/` para el código del backend y `public/onpilot_login.html` para el
 login/registro. Probado manualmente en desktop y móvil (login, cobro con
 descuento VIP, edición de cliente/tarifario, importación CSV, caja, semana de
-agenda) y persistencia confirmada tras reiniciar el servidor. Siguiente paso
-sugerido: `encargo_claude_code_registro_permisos.md`.
+agenda) y persistencia confirmada tras reiniciar el servidor.
+
+`registro_permisos` completado: el registro exige checkbox de Términos de
+Uso/Política de Privacidad (`public/terminos.html`, `public/privacidad.html`,
+placeholders marcados como borrador legal), validado en frontend y backend
+(`acepta_terminos` en `POST /api/auth/registro`, rechaza con 400 si falta).
+Cada negocio guarda `terminos_version`/`terminos_aceptados_en` en `negocios`
+(migración `002_terminos.sql`, versión vigente en `server/config/legal.js`) —
+mecanismo de re-aceptación futuro preparado pero no activo en esta v1.
+Verificado que el registro no se puede completar sin aceptar (frontend y
+backend por separado) y que los negocios demo de H1 siguen pudiendo iniciar
+sesión sin problema. Permisos de cámara/micrófono quedan documentados como
+convención para cuando se construyan H3/H4 (no hay ningún punto de la app
+hoy que los necesite); la importación de clientes de H1 ya usaba el selector
+de archivo nativo, sin cambios. Siguiente paso sugerido:
+`encargo_claude_code_h2_backend.md`.
 (Actualizar esta sección después de cada encargo completado.)
 
 ## Reglas de negocio que no se tocan sin confirmarlo antes

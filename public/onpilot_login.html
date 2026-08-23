@@ -56,6 +56,10 @@
   button[type=submit]:disabled{ opacity:0.6; cursor:default; }
   .error{ display:none; background:#FCEBEB; color:var(--red); border-radius:10px; padding:10px 14px; font-size:13px; }
   .error.show{ display:block; }
+  .checkbox-field{ display:flex; align-items:flex-start; gap:8px; font-size:12.5px; color:var(--gray); line-height:1.5; cursor:pointer; }
+  .checkbox-field input{ margin-top:2px; width:15px; height:15px; accent-color:var(--green); flex-shrink:0; }
+  .checkbox-field a{ color:var(--green-dk); font-weight:600; text-decoration:none; }
+  .checkbox-field a:hover{ text-decoration:underline; }
 </style>
 </head>
 <body>
@@ -94,6 +98,10 @@
       </div>
       <div class="field"><label>Email</label><input type="email" id="reg-email" required></div>
       <div class="field"><label>Contraseña</label><input type="password" id="reg-password" minlength="8" required></div>
+      <label class="checkbox-field">
+        <input type="checkbox" id="reg-terminos">
+        <span>He leído y acepto los <a href="/terminos.html" target="_blank">Términos de Uso</a> y la <a href="/privacidad.html" target="_blank">Política de Privacidad</a>.</span>
+      </label>
       <button type="submit" id="registro-btn">Crear cuenta</button>
     </form>
   </div>
@@ -152,6 +160,11 @@ async function enviarLogin(ev){
 async function enviarRegistro(ev){
   ev.preventDefault();
   ocultarError('registro-error');
+  var aceptaTerminos = document.getElementById('reg-terminos').checked;
+  if(!aceptaTerminos){
+    mostrarError('registro-error', 'Debes aceptar los Términos de Uso y la Política de Privacidad para crear la cuenta.');
+    return false;
+  }
   var btn = document.getElementById('registro-btn');
   btn.disabled = true;
   try{
@@ -164,6 +177,7 @@ async function enviarRegistro(ev){
         sector: document.getElementById('reg-sector').value,
         email: document.getElementById('reg-email').value,
         password: document.getElementById('reg-password').value,
+        acepta_terminos: aceptaTerminos,
       }),
     });
     var data = await res.json();
